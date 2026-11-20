@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengurusan Bola Sepak 4 Penjuru - Piala YDP PIBG SKAIKS 2026</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome untuk Ikon Bola Sepak, Piala & Kad -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pitch: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            950: '#052e16',
+                        },
+                        gold: {
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Gaya khusus untuk cetakan laporan rasmi & penambahbaikan UX */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .pitch-pattern {
+            background-color: #064e3b;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.18), transparent 60%),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 40px, transparent 40px, transparent 80px);
+        }
+
+        /* Mod Cetakan Rasmi */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 11pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            th, td {
+                border: 1px solid #333 !important;
+                padding: 6px 8px !important;
+                color: black !important;
+            }
+            th {
+                background-color: #e5e7eb !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Notifikasi Toast (Ganti alert) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 no-print"></div>
+
+    <!-- Modal Pengesahan (Ganti confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center gap-3 text-amber-600 mb-3">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="confirm-title" class="text-lg font-bold text-slate-900">Pengesahan Tindakan</h3>
+            </div>
+            <p id="confirm-message" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeConfirmModal(false)" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">
+                    Batal
+                </button>
+                <button onclick="closeConfirmModal(true)" class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition shadow-sm">
+                    Ya, Teruskan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER UTAMA KEJOHANAN -->
+    <header class="pitch-pattern text-white shadow-xl border-b-4 border-gold-400 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <!-- Tajuk & Info -->
+                <div class="flex items-start sm:items-center gap-4">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-gold-300 via-gold-400 to-gold-600 text-pitch-950 flex items-center justify-center shadow-lg shrink-0 border-2 border-white/40">
+                        <i class="fa-solid fa-trophy text-2xl sm:text-3xl"></i>
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-800/80 border border-emerald-500/40 text-gold-300 text-xs font-bold tracking-wider uppercase mb-1">
+                            <span><i class="fa-regular fa-calendar"></i> 22 November 2026</span>
+                            <span>•</span>
+                            <span><i class="fa-solid fa-location-dot"></i> Padang Sintetik UNIMAS</span>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white leading-tight">
+                            BOLA SEPAK 4 PENJURU <span class="text-gold-400 block sm:inline">2026</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-emerald-100 font-medium">
+                            Piala YDP PIBG SK Agama Ibnu Khaldun • Sistem Urus Setia & Rekod Langsung
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Butang Tindakan Pantas -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="save-indicator" class="text-xs text-emerald-200 bg-emerald-950/60 px-3 py-2 rounded-xl border border-emerald-700/50 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> Tersimpan Automatik
+                    </span>
+                    <button onclick="openPrintView()" class="px-3.5 py-2 rounded-xl bg-gold-400 hover:bg-gold-300 text-pitch-950 font-bold text-xs sm:text-sm transition shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Cetak Laporan Rasmi
+                    </button>
+                    <button onclick="exportDataJSON()" title="Muat turun sandaran data JSON" class="px-3 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm transition border border-emerald-600/50 flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Eksport</span>
+                    </button>
+                    <label title="Muat naik fail sandaran JSON" class="cursor-pointer px-3 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm transition border border-emerald-600/50 flex items-center gap-1.5">
+                        <i class="fa-solid fa-upload"></i> <span class="hidden sm:inline">Import</span>
+                        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importDataJSON(event)">
+                    </label>
+                    <button onclick="requestResetData()" title="Set semula semua rekod" class="px-3 py-2 rounded-xl bg-red-900/70 hover:bg-red-700 text-red-100 font-semibold text-xs sm:text-sm transition border border-red-500/40 flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigasi Tab Utama -->
+            <nav class="flex gap-1.5 sm:gap-2 mt-5 overflow-x-auto pb-1">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap bg-white text-pitch-900 shadow-sm">
+                    <i class="fa-solid fa-futbol"></i> Jadual & Kedudukan
+                </button>
+                <button onclick="switchTab('scorers')" id="tab-btn-scorers" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap bg-emerald-900/60 text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-medal"></i> Penjaring & Disiplin
+                </button>
+                <button onclick="switchTab('rules')" id="tab-btn-rules" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap bg-emerald-900/60 text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-book-open"></i> Peraturan Kejohanan
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- KANDUNGAN UTAMA (ANTARAMUKA INTERAKTIF) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 no-print">
+
+        <!-- TAB 1: JADUAL, KEPUTUSAN & KEDUDUKAN LIGA -->
+        <div id="tab-dashboard" class="space-y-6">
+            
+            <!-- Ringkasan Status Kejohanan -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Perlawanan Liga</p>
+                        <p id="stat-league-progress" class="text-xl font-black text-slate-900">0 / 6 Tamat</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-futbol"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Jumlah Gol</p>
+                        <p id="stat-total-goals" class="text-xl font-black text-slate-900">0 Gol</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Pendahulu Liga</p>
+                        <p id="stat-leader" class="text-base sm:text-lg font-black text-slate-900 truncate">-</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-yellow-100 text-yellow-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500 uppercase">Juara Kejohanan</p>
+                        <p id="stat-champion" class="text-base sm:text-lg font-black text-emerald-700 truncate">Menunggu Final</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Susun Atur 2 Lajur: Kiri (Jadual Liga), Kanan (Carta Kedudukan & Penentuan) -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                <!-- LAJUR KIRI: 1. PERINGKAT LIGA (L1 - L6) -->
+                <section class="xl:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-gold-400">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-gold-400 text-pitch-950 text-xs font-black flex items-center justify-center">1</span>
+                                PERINGKAT LIGA (SATU PUSINGAN)
+                            </h2>
+                            <p class="text-xs text-emerald-200 mt-0.5">Masukkan skor akhir (atau separuh masa) terus pada kotak skor di bawah</p>
+                        </div>
+                        <span class="text-xs font-semibold bg-pitch-950/60 text-gold-300 px-3 py-1 rounded-full border border-emerald-600/40">
+                            Setiap pasukan 3 perlawanan
+                        </span>
+                    </div>
+
+                    <div id="league-matches-container" class="divide-y divide-slate-200">
+                        <!-- Kad Perlawanan L1 - L6 dijana oleh JS -->
+                    </div>
+                </section>
+
+                <!-- LAJUR KANAN: CARTA KEDUDUKAN & PERLAWANAN AKHIR -->
+                <div class="xl:col-span-5 space-y-6">
+                    
+                    <!-- CARTA KEDUDUKAN LIGA -->
+                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 flex items-center justify-between border-b-2 border-gold-400">
+                            <div>
+                                <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-ranking-star text-gold-400"></i>
+                                    KEDUDUKAN LIGA
+                                </h2>
+                                <p class="text-xs text-emerald-200 mt-0.5">Kiraan automatik: Mata → GD → GF → H2H</p>
+                            </div>
+                            <span class="text-xs font-bold text-white bg-emerald-700/80 px-2.5 py-1 rounded-lg">M:3 S:1 K:0</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                                        <th class="py-3 px-3 text-center w-10">Pos</th>
+                                        <th class="py-3 px-3">Pasukan</th>
+                                        <th class="py-3 px-2 text-center" title="Perlawanan">P</th>
+                                        <th class="py-3 px-2 text-center" title="Menang">M</th>
+                                        <th class="py-3 px-2 text-center" title="Seri">S</th>
+                                        <th class="py-3 px-2 text-center" title="Kalah">K</th>
+                                        <th class="py-3 px-2 text-center" title="Jaringan Gol">GF</th>
+                                        <th class="py-3 px-2 text-center" title="Gol Bolos">GA</th>
+                                        <th class="py-3 px-2 text-center" title="Perbezaan Gol">GD</th>
+                                        <th class="py-3 px-3 text-center bg-emerald-50 text-pitch-900 font-black" title="Mata">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="standings-tbody" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Baris kedudukan dijana oleh JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Layak Final (1 & 2)</span>
+                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tempat 3 & 4 (3 & 4)</span>
+                            </div>
+                            <span>P=Main, GD=Beza Gol</span>
+                        </div>
+                    </section>
+
+                    <!-- 2. PERLAWANAN AKHIR & PENENTUAN TEMPAT -->
+                    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 border-b-2 border-gold-400">
+                            <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-gold-400 text-pitch-950 text-xs font-black flex items-center justify-center">2</span>
+                                PERLAWANAN AKHIR & PENENTUAN
+                            </h2>
+                            <p class="text-xs text-emerald-200 mt-0.5">Pasukan dikemas kini automatik mengikut kedudukan akhir liga</p>
+                        </div>
+
+                        <div id="knockout-matches-container" class="p-4 space-y-4">
+                            <!-- Kad P3 dan FINAL dijana oleh JS -->
+                        </div>
+
+                        <!-- Paparan Keputusan Rasmi Podium -->
+                        <div id="podium-summary" class="bg-gradient-to-br from-amber-50 via-yellow-50 to-emerald-50 border-t border-amber-200 p-4">
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-800 mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-award text-amber-500"></i> Keputusan Rasmi Kejohanan
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                                <div class="bg-white/90 p-2.5 rounded-xl border border-amber-300 shadow-sm flex items-center gap-2.5">
+                                    <span class="w-7 h-7 rounded-lg bg-amber-400 text-pitch-950 font-black flex items-center justify-center shrink-0"><i class="fa-solid fa-trophy"></i></span>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-amber-700 uppercase">Juara Kejohanan</p>
+                                        <p id="res-1st" class="font-extrabold text-slate-900 truncate">Belum ditentukan</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 p-2.5 rounded-xl border border-slate-300 shadow-sm flex items-center gap-2.5">
+                                    <span class="w-7 h-7 rounded-lg bg-slate-300 text-slate-800 font-black flex items-center justify-center shrink-0">2</span>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-slate-500 uppercase">Naib Juara</p>
+                                        <p id="res-2nd" class="font-extrabold text-slate-900 truncate">Belum ditentukan</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 p-2.5 rounded-xl border border-orange-200 shadow-sm flex items-center gap-2.5">
+                                    <span class="w-7 h-7 rounded-lg bg-orange-200 text-orange-900 font-black flex items-center justify-center shrink-0">3</span>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-orange-700 uppercase">Tempat Ketiga</p>
+                                        <p id="res-3rd" class="font-extrabold text-slate-900 truncate">Belum ditentukan</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/90 p-2.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2.5">
+                                    <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-black flex items-center justify-center shrink-0">4</span>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-slate-500 uppercase">Tempat Keempat</p>
+                                        <p id="res-4th" class="font-extrabold text-slate-900 truncate">Belum ditentukan</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PENJARING TERBANYAK & REKOD DISIPLIN -->
+        <div id="tab-scorers" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Carta Penjaring Gol -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 border-b-2 border-gold-400">
+                        <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-futbol text-gold-400"></i> SENARAI PENJARING GOL KEJOHANAN
+                        </h2>
+                        <p class="text-xs text-emerald-200 mt-0.5">Dijana automatik daripada Borang Laporan Individu setiap perlawanan</p>
+                    </div>
+                    <div id="top-scorers-list" class="p-5">
+                        <!-- Senarai penjaring gol -->
+                    </div>
+                </section>
+
+                <!-- Rekod Kad & Disiplin Keseluruhan -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-800 to-slate-900 px-5 py-4 border-b-2 border-amber-400">
+                        <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-square text-yellow-400"></i> REKOD KAD & DISIPLIN KESELURUHAN
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-0.5">Himpunan kad kuning dan kad merah sepanjang kejohanan</p>
+                    </div>
+                    <div id="all-cards-list" class="p-5">
+                        <!-- Senarai kad -->
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- TAB 3: PERATURAN PERTANDINGAN & PERLAWANAN -->
+        <div id="tab-rules" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 3. Peraturan Pertandingan -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 border-b-2 border-gold-400">
+                        <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-gold-400 text-pitch-950 text-xs font-black flex items-center justify-center">3</span>
+                            PERATURAN PERTANDINGAN
+                        </h2>
+                    </div>
+                    <div class="p-5 space-y-3 text-sm text-slate-700">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <p>Pertandingan menggunakan format <strong>liga satu pusingan</strong> melibatkan 4 pasukan.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <p>Setiap pasukan akan bermain sebanyak <strong>tiga (3) perlawanan</strong> di peringkat liga.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <p>Pasukan yang menduduki <strong>tempat pertama (1) dan kedua (2)</strong> akan bertanding dalam <strong>Perlawanan Akhir (Final)</strong>.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+                            <p>Pasukan yang menduduki <strong>tempat ketiga (3) dan keempat (4)</strong> akan bertanding bagi menentukan tempat ketiga dan keempat.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">5</span>
+                            <div>
+                                <p class="font-semibold text-slate-900">Sistem pengiraan mata:</p>
+                                <div class="flex flex-wrap gap-2 mt-1.5">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs">Menang : 3 mata</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-bold text-xs">Seri : 1 mata</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-red-800 font-bold text-xs">Kalah : 0 mata</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">6</span>
+                            <p>Sekiranya terdapat persamaan mata, kedudukan ditentukan berdasarkan: <strong>(i) Perbezaan jaringan gol (GD)</strong>, <strong>(ii) Jumlah jaringan gol (GF)</strong>, dan <strong>(iii) Keputusan pertemuan antara pasukan (Head-to-Head)</strong>.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. Peraturan Perlawanan -->
+                <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pitch-900 to-pitch-800 px-5 py-4 border-b-2 border-gold-400">
+                        <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-gold-400 text-pitch-950 text-xs font-black flex items-center justify-center">4</span>
+                            PERATURAN PERLAWANAN
+                        </h2>
+                    </div>
+                    <div class="p-5 space-y-3 text-sm text-slate-700">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <p>Perlawanan dijalankan menggunakan format <strong>bola sepak 11 sebelah</strong>.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <p>Setiap perlawanan berlangsung selama <strong>35 minit</strong>: <strong>15 minit</strong> (Separuh masa pertama), <strong>5 minit</strong> (Rehat) dan <strong>15 minit</strong> (Separuh masa kedua).</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <p>Setiap pasukan hendaklah bersedia sekurang-kurangnya <strong>15 minit</strong> sebelum perlawanan bermula.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+                            <p>Pemain hendaklah memakai pakaian sukan dan kasut yang sesuai untuk <strong>padang sintetik</strong>.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">5</span>
+                            <p>Sebarang tindakan kasar, pergaduhan, provokasi atau tingkah laku tidak berdisiplin adalah dilarang.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 rounded-md bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">6</span>
+                            <p>Segala keputusan pengadil sepanjang perlawanan adalah <strong>muktamad</strong>.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL BORANG LAPORAN INDIVIDU PERLAWANAN (C - G) -->
+    <div id="match-detail-modal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-40 hidden overflow-y-auto p-2 sm:p-6 no-print">
+        <div class="bg-white rounded-2xl max-w-4xl w-full mx-auto my-4 shadow-2xl border border-slate-200 overflow-hidden">
+            <!-- Header Modal -->
+            <div class="bg-gradient-to-r from-pitch-950 via-pitch-900 to-pitch-800 px-5 py-4 flex items-center justify-between border-b-2 border-gold-400">
+                <div>
+                    <span id="modal-match-badge" class="inline-block px-2.5 py-0.5 rounded-md bg-gold-400 text-pitch-950 text-xs font-black uppercase mb-1">L1</span>
+                    <h3 id="modal-match-title" class="text-lg sm:text-xl font-extrabold text-white">Borang Laporan Individu Perlawanan</h3>
+                </div>
+                <button onclick="closeMatchModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Badan Modal -->
+            <div class="p-5 sm:p-6 space-y-6 max-h-[82vh] overflow-y-auto">
+                <input type="hidden" id="modal-match-id">
+
+                <!-- C. MAKLUMAT ASAS & SKOR -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                        <h4 class="text-sm font-extrabold text-pitch-900 uppercase tracking-wide">C. Maklumat Perlawanan & Skor</h4>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-semibold text-slate-600">Masa:</label>
+                            <input type="text" id="modal-time" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="cth: 8.00–8.35 pagi">
+                        </div>
+                    </div>
+
+                    <!-- Paparan Skor Besar -->
+                    <div class="grid grid-cols-1 md:grid-cols-11 gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="md:col-span-4 text-center md:text-right">
+                            <p class="text-[11px] font-bold uppercase text-slate-400">Pasukan A</p>
+                            <p id="modal-teamA-name" class="text-base sm:text-lg font-black text-slate-900">SKAIKS</p>
+                        </div>
+
+                        <div class="md:col-span-3 flex flex-col items-center justify-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" id="modal-scoreA" placeholder="-" class="w-14 h-12 text-center text-2xl font-black rounded-xl border-2 border-emerald-600 bg-emerald-50/40 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <span class="text-xl font-black text-slate-400">:</span>
+                                <input type="number" min="0" id="modal-scoreB" placeholder="-" class="w-14 h-12 text-center text-2xl font-black rounded-xl border-2 border-emerald-600 bg-emerald-50/40 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                            <!-- Skor Separuh Masa -->
+                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                <span>Separuh Masa:</span>
+                                <input type="number" min="0" id="modal-htA" placeholder="-" class="w-9 h-7 text-center font-bold rounded-md border border-slate-300 bg-slate-50">
+                                <span>:</span>
+                                <input type="number" min="0" id="modal-htB" placeholder="-" class="w-9 h-7 text-center font-bold rounded-md border border-slate-300 bg-slate-50">
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-4 text-center md:text-left">
+                            <p class="text-[11px] font-bold uppercase text-slate-400">Pasukan B</p>
+                            <p id="modal-teamB-name" class="text-base sm:text-lg font-black text-slate-900">SK Dato' Mohd Musa</p>
+                        </div>
+                    </div>
+
+                    <!-- Penentuan Penalti (Hanya untuk P3 / FINAL jika seri) -->
+                    <div id="modal-penalty-box" class="hidden bg-amber-50 p-3.5 rounded-xl border border-amber-300 space-y-2">
+                        <p class="text-xs font-extrabold text-amber-900 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye"></i> Penentuan Tambahan / Sepakan Penalti (Jika Seri)
+                        </p>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-2 text-xs font-bold">
+                                <span id="pen-label-A">Pasukan A</span>
+                                <input type="number" min="0" id="modal-penA" placeholder="-" class="w-12 h-8 text-center font-black rounded-lg border border-amber-400 bg-white">
+                                <span>:</span>
+                                <input type="number" min="0" id="modal-penB" placeholder="-" class="w-12 h-8 text-center font-black rounded-lg border border-amber-400 bg-white">
+                                <span id="pen-label-B">Pasukan B</span>
+                            </div>
+                            <input type="text" id="modal-pen-note" placeholder="Catatan kaedah penentuan (cth: Penalti 5-4)" class="flex-1 min-w-[200px] text-xs px-3 py-1.5 rounded-lg border border-amber-300 bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Status, Pengadil & Penjaga Masa -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Status Perlawanan</label>
+                            <select id="modal-status" class="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+                                <option value="Belum Mula">Belum Mula</option>
+                                <option value="Sedang Berlangsung">Sedang Berlangsung</option>
+                                <option value="Tamat">Tamat</option>
+                                <option value="Dihentikan">Dihentikan</option>
+                                <option value="Ditunda">Ditunda</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Pengadil</label>
+                            <input type="text" id="modal-referee" placeholder="Nama pengadil utama" class="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Penjaga Masa</label>
+                            <input type="text" id="modal-timekeeper" placeholder="Nama penjaga masa" class="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- D. REKOD PENJARING GOL -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-extrabold text-pitch-900 uppercase tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-futbol text-emerald-600"></i> D. Rekod Penjaring Gol
+                        </h4>
+                        <button type="button" onclick="addGoalRow()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah Gol
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                    <th class="py-2 px-2 w-20">Minit</th>
+                                    <th class="py-2 px-2">Nama / No. Penjaring</th>
+                                    <th class="py-2 px-2 w-44">Pasukan</th>
+                                    <th class="py-2 px-2">Catatan (cth: Penalti / Gol Sendiri)</th>
+                                    <th class="py-2 px-2 w-10 text-center">Padam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-goals-tbody" class="divide-y divide-slate-100">
+                                <!-- Baris gol dinamik -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- E. REKOD KAD & DISIPLIN -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-square text-yellow-400"></i> E. Rekod Kad & Disiplin
+                        </h4>
+                        <button type="button" onclick="addCardRow()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Tambah Kad
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                    <th class="py-2 px-2 w-20">Masa</th>
+                                    <th class="py-2 px-2">Nama / No. Pemain</th>
+                                    <th class="py-2 px-2 w-44">Pasukan</th>
+                                    <th class="py-2 px-2 w-36">Jenis Kad</th>
+                                    <th class="py-2 px-2">Sebab / Kesalahan</th>
+                                    <th class="py-2 px-2 w-10 text-center">Padam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-cards-tbody" class="divide-y divide-slate-100">
+                                <!-- Baris kad dinamik -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- F & G. REKOD KECEDERAAN / INSIDEN & PENGESAHAN -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                        <h4 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">F. Rekod Kecederaan / Insiden</h4>
+                        <textarea id="modal-incidents" rows="4" placeholder="Tiada insiden / Catat sebarang kecederaan atau insiden perlawanan di sini..." class="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+                        <h4 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">G. Pengesahan Keputusan</h4>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600">Nama Pengadil Sah</label>
+                            <input type="text" id="modal-sign-referee" placeholder="Nama pengadil" class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600">Nama Pencatat</label>
+                            <input type="text" id="modal-sign-recorder" placeholder="Nama pencatat" class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600">Nama Urus Setia</label>
+                            <input type="text" id="modal-sign-committee" placeholder="Nama wakil urus setia" class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+                <button onclick="closeMatchModal()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-700 font-bold text-sm border border-slate-300 transition">
+                    Tutup
+                </button>
+                <button onclick="saveMatchModal()" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Laporan Perlawanan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAPARAN KHAS CETAKAN RASMI (HANYA MUNCUL SEMASA PRINT) -->
+    <div id="print-report-area" class="hidden print-only p-6">
+        <!-- Dijana secara dinamik sebelum window.print() -->
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-pitch-950 text-emerald-200/80 text-xs py-4 px-4 text-center border-t border-emerald-800/60 no-print">
+        <p class="font-semibold text-white">Bola Sepak 4 Penjuru: Piala YDP PIBG SK Agama Ibnu Khaldun Tahun 2026</p>
+        <p class="mt-0.5">22 November 2026 • Padang Sintetik UNIMAS • Fair Play • Respect • Team Spirit</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIK SISTEM -->
+    <script>
+        // =========================================================================
+        // 1. KONFIGURASI & DATA LALAI (DEFAULT STATE)
+        // =========================================================================
+        const STORAGE_KEY = 'skaiks_4penjuru_2026_v1';
+
+        const TEAMS = [
+            { id: 'SKAIKS', name: 'SKAIKS', short: 'SKAIKS', badgeColor: 'bg-emerald-600' },
+            { id: 'SKDMM', name: "SK Dato' Mohd Musa", short: 'SKDMM', badgeColor: 'bg-amber-600' },
+            { id: 'SKPK', name: 'SK Pangkalan KUAP', short: 'KUAP', badgeColor: 'bg-blue-600' },
+            { id: 'SMKKS', name: 'SMKKS', short: 'SMKKS', badgeColor: 'bg-purple-600' }
+        ];
+
+        const DEFAULT_DATA = {
+            matches: [
+                {
+                    id: 'L1', stage: 'LEAGUE', label: 'Perlawanan L1',
+                    time: '7:30 – 8:05 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKAIKS', teamB: 'SKDMM',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'L2', stage: 'LEAGUE', label: 'Perlawanan L2',
+                    time: '8:15 – 8:50 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKPK', teamB: 'SMKKS',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'L3', stage: 'LEAGUE', label: 'Perlawanan L3',
+                    time: '9:00 – 9:35 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKAIKS', teamB: 'SKPK',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'L4', stage: 'LEAGUE', label: 'Perlawanan L4',
+                    time: '9:45 – 10:20 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKDMM', teamB: 'SMKKS',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'L5', stage: 'LEAGUE', label: 'Perlawanan L5',
+                    time: '10:30 – 11:05 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKAIKS', teamB: 'SMKKS',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'L6', stage: 'LEAGUE', label: 'Perlawanan L6',
+                    time: '11:15 – 11:50 pagi', venue: 'Padang Sintetik UNIMAS',
+                    teamA: 'SKDMM', teamB: 'SKPK',
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'P3', stage: 'THIRD_PLACE', label: 'Penentuan Tempat Ke-3 & Ke-4',
+                    time: '12:00 – 12:35 tgh hari', venue: 'Padang Sintetik UNIMAS',
+                    teamA: null, teamB: null,
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    penA: null, penB: null, penNote: '',
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                },
+                {
+                    id: 'FINAL', stage: 'FINAL', label: 'Perlawanan Akhir (FINAL)',
+                    time: '12:40 – 1:15 petang', venue: 'Padang Sintetik UNIMAS',
+                    teamA: null, teamB: null,
+                    scoreA: null, scoreB: null, htA: null, htB: null,
+                    penA: null, penB: null, penNote: '',
+                    status: 'Belum Mula', referee: '', timekeeper: '',
+                    goals: [], cards: [], incidents: '',
+                    signReferee: '', signRecorder: '', signCommittee: ''
+                }
+            ]
+        };
+
+        let tournamentState = loadState();
+        let confirmCallback = null;
+
+        // =========================================================================
+        // 2. PENGURUSAN LOCALSTORAGE & NOTIFIKASI
+        // =========================================================================
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.matches) && parsed.matches.length === 8) {
+                        return parsed;
+                    }
+                }
+            } catch (e) {
+                console.error('Ralat memuatkan data:', e);
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveState(showToastMsg = false) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentState));
+                const indicator = document.getElementById('save-indicator');
+                if (indicator) {
+                    indicator.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Disimpan (${new Date().toLocaleTimeString('ms-MY', {hour: '2-digit', minute:'2-digit'})})`;
+                }
+                if (showToastMsg) {
+                    showToast('Rekod kejohanan berjaya disimpan!', 'success');
+                }
+            } catch (e) {
+                showToast('Gagal menyimpan data ke pelayar.', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-red-600' : (type === 'info' ? 'bg-slate-800' : 'bg-emerald-700');
+            const icon = type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check';
+            
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2.5 transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            confirmCallback = onConfirm;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal(confirmed) {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (confirmed && typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+            confirmCallback = null;
+        }
+
+        // =========================================================================
+        // 3. PENGIRAAN CARTA LIGA (TERMASUK HEAD-TO-HEAD)
+        // =========================================================================
+        function getTeamName(teamId) {
+            if (!teamId) return 'Belum Ditentukan';
+            const t = TEAMS.find(x => x.id === teamId);
+            return t ? t.name : teamId;
+        }
+
+        function getTeamObj(teamId) {
+            return TEAMS.find(x => x.id === teamId) || { id: teamId, name: teamId || 'TBD', short: 'TBD', badgeColor: 'bg-slate-400' };
+        }
+
+        function calculateStandings() {
+            const stats = {};
+            TEAMS.forEach(t => {
+                stats[t.id] = {
+                    id: t.id,
+                    name: t.name,
+                    short: t.short,
+                    badgeColor: t.badgeColor,
+                    P: 0, M: 0, S: 0, K: 0,
+                    GF: 0, GA: 0, GD: 0, Pts: 0
+                };
+            });
+
+            const leagueMatches = tournamentState.matches.filter(m => m.stage === 'LEAGUE');
+
+            leagueMatches.forEach(m => {
+                if (m.scoreA !== null && m.scoreB !== null && m.scoreA !== '' && m.scoreB !== '') {
+                    const sA = parseInt(m.scoreA, 10);
+                    const sB = parseInt(m.scoreB, 10);
+                    if (!isNaN(sA) && !isNaN(sB)) {
+                        const tA = stats[m.teamA];
+                        const tB = stats[m.teamB];
+                        tA.P += 1;
+                        tB.P += 1;
+                        tA.GF += sA;
+                        tA.GA += sB;
+                        tB.GF += sB;
+                        tB.GA += sA;
+
+                        if (sA > sB) {
+                            tA.M += 1; tA.Pts += 3;
+                            tB.K += 1;
+                        } else if (sB > sA) {
+                            tB.M += 1; tB.Pts += 3;
+                            tA.K += 1;
+                        } else {
+                            tA.S += 1; tA.Pts += 1;
+                            tB.S += 1; tB.Pts += 1;
+                        }
+                    }
+                }
+            });
+
+            Object.values(stats).forEach(t => {
+                t.GD = t.GF - t.GA;
+            });
+
+            // Susun mengikut: 1. Mata (Pts), 2. Perbezaan Gol (GD), 3. Jaringan Gol (GF), 4. Head-to-Head
+            const sorted = Object.values(stats).sort((a, b) => {
+                if (b.Pts !== a.Pts) return b.Pts - a.Pts;
+                if (b.GD !== a.GD) return b.GD - a.GD;
+                if (b.GF !== a.GF) return b.GF - a.GF;
+
+                // Semak pertemuan antara kedua-dua pasukan (Head-to-Head)
+                const h2h = leagueMatches.find(m =>
+                    (m.teamA === a.id && m.teamB === b.id) ||
+                    (m.teamA === b.id && m.teamB === a.id)
+                );
+                if (h2h && h2h.scoreA !== null && h2h.scoreB !== null) {
+                    const sA = parseInt(h2h.scoreA, 10);
+                    const sB = parseInt(h2h.scoreB, 10);
+                    if (!isNaN(sA) && !isNaN(sB) && sA !== sB) {
+                        const winnerId = sA > sB ? h2h.teamA : h2h.teamB;
+                        return winnerId === a.id ? -1 : 1;
+                    }
+                }
+                return 0;
+            });
+
+            return sorted;
+        }
+
+        // =========================================================================
+        // 4. KEMASKINI SKOR PANTAS & RENDER UI UTAMA
+        // =========================================================================
+        function handleQuickScoreInput(matchId, side, value) {
+            const match = tournamentState.matches.find(m => m.id === matchId);
+            if (!match) return;
+
+            const cleanVal = value === '' ? null : Math.max(0, parseInt(value, 10));
+            if (side === 'A') match.scoreA = isNaN(cleanVal) ? null : cleanVal;
+            if (side === 'B') match.scoreB = isNaN(cleanVal) ? null : cleanVal;
+
+            // Kemas kini status automatik jika kedua-dua skor diisi
+            if (match.scoreA !== null && match.scoreB !== null) {
+                if (match.status === 'Belum Mula') {
+                    match.status = 'Tamat';
+                }
+            } else if (match.scoreA === null && match.scoreB === null) {
+                match.status = 'Belum Mula';
+            }
+
+            saveState(false);
+            renderAll();
+        }
+
+        function handleQuickPenaltyInput(matchId, side, value) {
+            const match = tournamentState.matches.find(m => m.id === matchId);
+            if (!match) return;
+            const cleanVal = value === '' ? null : Math.max(0, parseInt(value, 10));
+            if (side === 'A') match.penA = isNaN(cleanVal) ? null : cleanVal;
+            if (side === 'B') match.penB = isNaN(cleanVal) ? null : cleanVal;
+            saveState(false);
+            renderAll();
+        }
+
+        function getStatusBadgeHTML(status) {
+            switch (status) {
+                case 'Tamat':
+                    return `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-check mr-1"></i>Tamat</span>`;
+                case 'Sedang Berlangsung':
+                    return `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"><i class="fa-solid fa-circle text-[8px] mr-1 text-red-500"></i>Live</span>`;
+                case 'Dihentikan':
+                case 'Ditunda':
+                    return `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">${status}</span>`;
+                default:
+                    return `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Belum Mula</span>`;
+            }
+        }
+
+        function renderAll() {
+            const standings = calculateStandings();
+
+            // Tetapkan pasukan automatik untuk P3 (Tempat 3 vs 4) dan FINAL (Tempat 1 vs 2)
+            const p3Match = tournamentState.matches.find(m => m.id === 'P3');
+            const finalMatch = tournamentState.matches.find(m => m.id === 'FINAL');
+            if (p3Match) {
+                p3Match.teamA = standings[2].id;
+                p3Match.teamB = standings[3].id;
+            }
+            if (finalMatch) {
+                finalMatch.teamA = standings[0].id;
+                finalMatch.teamB = standings[1].id;
+            }
+
+            renderLeagueMatches();
+            renderStandingsTable(standings);
+            renderKnockoutMatches(standings);
+            renderSummaryCards(standings);
+            renderScorersAndCardsTab();
+        }
+
+        function renderLeagueMatches() {
+            const container = document.getElementById('league-matches-container');
+            const leagueMatches = tournamentState.matches.filter(m => m.stage === 'LEAGUE');
+
+            container.innerHTML = leagueMatches.map(m => {
+                const teamA = getTeamObj(m.teamA);
+                const teamB = getTeamObj(m.teamB);
+                const sA = m.scoreA !== null ? m.scoreA : '';
+                const sB = m.scoreB !== null ? m.scoreB : '';
+                const hasDetails = (m.goals && m.goals.length > 0) || (m.cards && m.cards.length > 0) || m.referee;
+
+                return `
+                <div class="p-4 hover:bg-slate-50/80 transition">
+                    <!-- Baris Atas Kad: No Perlawanan, Masa & Status -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-pitch-900 text-gold-400 font-black text-xs tracking-wide">${m.id}</span>
+                            <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${m.time}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${getStatusBadgeHTML(m.status)}
+                            <button onclick="openMatchModal('${m.id}')" class="px-2.5 py-1 rounded-lg ${hasDetails ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white text-slate-700 border-slate-300'} hover:bg-emerald-700 hover:text-white border text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-file-pen"></i> Laporan ${hasDetails ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>' : ''}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Baris Tengah: Pasukan A vs Pasukan B & Kotak Skor -->
+                    <div class="grid grid-cols-11 items-center gap-2">
+                        <!-- Pasukan A -->
+                        <div class="col-span-4 flex items-center justify-end gap-2 text-right">
+                            <span class="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">${teamA.name}</span>
+                            <span class="w-7 h-7 rounded-full ${teamA.badgeColor} text-white text-[10px] font-black hidden sm:flex items-center justify-center shrink-0 shadow-xs">${teamA.short.slice(0,2)}</span>
+                        </div>
+
+                        <!-- Input Skor -->
+                        <div class="col-span-3 flex items-center justify-center gap-1.5">
+                            <input type="number" min="0" value="${sA}" placeholder="-"
+                                onchange="handleQuickScoreInput('${m.id}', 'A', this.value)"
+                                aria-label="Skor ${teamA.name}"
+                                class="w-11 sm:w-12 h-10 text-center text-lg font-black rounded-xl border-2 ${sA !== '' ? 'border-emerald-600 bg-emerald-50/50 text-pitch-950' : 'border-slate-300 bg-white text-slate-700'} focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30 outline-none transition">
+                            <span class="text-sm font-black text-slate-400">:</span>
+                            <input type="number" min="0" value="${sB}" placeholder="-"
+                                onchange="handleQuickScoreInput('${m.id}', 'B', this.value)"
+                                aria-label="Skor ${teamB.name}"
+                                class="w-11 sm:w-12 h-10 text-center text-lg font-black rounded-xl border-2 ${sB !== '' ? 'border-emerald-600 bg-emerald-50/50 text-pitch-950' : 'border-slate-300 bg-white text-slate-700'} focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30 outline-none transition">
+                        </div>
+
+                        <!-- Pasukan B -->
+                        <div class="col-span-4 flex items-center justify-start gap-2 text-left">
+                            <span class="w-7 h-7 rounded-full ${teamB.badgeColor} text-white text-[10px] font-black hidden sm:flex items-center justify-center shrink-0 shadow-xs">${teamB.short.slice(0,2)}</span>
+                            <span class="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">${teamB.name}</span>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Penjaring Gol jika ada -->
+                    ${m.goals && m.goals.length > 0 ? `
+                        <div class="mt-2.5 pt-2 border-t border-dashed border-slate-200 flex flex-wrap gap-1.5 text-[11px] text-slate-600">
+                            <span class="font-bold text-emerald-700"><i class="fa-solid fa-futbol mr-1"></i>Gol:</span>
+                            ${m.goals.map(g => `<span class="bg-slate-100 px-2 py-0.5 rounded-md">${g.player || 'Pemain'} (${getTeamObj(g.team).short}${g.minute ? " " + g.minute + "'" : ''})</span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function renderStandingsTable(standings) {
+            const tbody = document.getElementById('standings-tbody');
+            tbody.innerHTML = standings.map((t, index) => {
+                const pos = index + 1;
+                const isFinalist = pos <= 2;
+                const posBadge = isFinalist
+                    ? 'bg-amber-400 text-pitch-950 font-black'
+                    : 'bg-emerald-100 text-emerald-900 font-bold';
+                const rowBg = isFinalist ? 'bg-amber-50/30' : '';
+                const gdFormatted = t.GD > 0 ? `+${t.GD}` : `${t.GD}`;
+
+                return `
+                <tr class="${rowBg} hover:bg-slate-50 transition">
+                    <td class="py-3 px-3 text-center">
+                        <span class="w-6 h-6 rounded-lg ${posBadge} text-xs inline-flex items-center justify-center shadow-2xs">${pos}</span>
+                    </td>
+                    <td class="py-3 px-3 font-extrabold text-slate-900 text-xs sm:text-sm">${t.name}</td>
+                    <td class="py-3 px-2 text-center font-semibold text-slate-600">${t.P}</td>
+                    <td class="py-3 px-2 text-center font-semibold text-emerald-700">${t.M}</td>
+                    <td class="py-3 px-2 text-center font-semibold text-amber-600">${t.S}</td>
+                    <td class="py-3 px-2 text-center font-semibold text-red-600">${t.K}</td>
+                    <td class="py-3 px-2 text-center text-slate-600">${t.GF}</td>
+                    <td class="py-3 px-2 text-center text-slate-600">${t.GA}</td>
+                    <td class="py-3 px-2 text-center font-bold ${t.GD > 0 ? 'text-emerald-700' : (t.GD < 0 ? 'text-red-600' : 'text-slate-500')}">${gdFormatted}</td>
+                    <td class="py-3 px-3 text-center bg-emerald-50/80 font-black text-pitch-950 text-base">${t.Pts}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function resolveKnockoutWinner(match) {
+            if (!match || match.scoreA === null || match.scoreB === null || match.scoreA === '' || match.scoreB === '') {
+                return { winner: null, loser: null };
+            }
+            const sA = parseInt(match.scoreA, 10);
+            const sB = parseInt(match.scoreB, 10);
+            if (isNaN(sA) || isNaN(sB)) return { winner: null, loser: null };
+
+            if (sA > sB) return { winner: match.teamA, loser: match.teamB };
+            if (sB > sA) return { winner: match.teamB, loser: match.teamA };
+
+            // Jika seri, semak penentuan penalti
+            if (match.penA !== null && match.penB !== null && match.penA !== '' && match.penB !== '') {
+                const pA = parseInt(match.penA, 10);
+                const pB = parseInt(match.penB, 10);
+                if (!isNaN(pA) && !isNaN(pB) && pA !== pB) {
+                    return pA > pB ? { winner: match.teamA, loser: match.teamB } : { winner: match.teamB, loser: match.teamA };
+                }
+            }
+            return { winner: null, loser: null, isDrawNeedPen: true };
+        }
+
+        function renderKnockoutMatches(standings) {
+            const container = document.getElementById('knockout-matches-container');
+            const p3 = tournamentState.matches.find(m => m.id === 'P3');
+            const fin = tournamentState.matches.find(m => m.id === 'FINAL');
+            const leagueCompleted = tournamentState.matches.filter(m => m.stage === 'LEAGUE' && m.scoreA !== null && m.scoreB !== null).length;
+
+            const renderKnockoutCard = (m, isFinal) => {
+                const tA = getTeamObj(m.teamA);
+                const tB = getTeamObj(m.teamB);
+                const sA = m.scoreA !== null ? m.scoreA : '';
+                const sB = m.scoreB !== null ? m.scoreB : '';
+                const isDraw = sA !== '' && sB !== '' && parseInt(sA, 10) === parseInt(sB, 10);
+                const borderClass = isFinal ? 'border-amber-400 bg-gradient-to-br from-amber-50/60 to-white' : 'border-emerald-300 bg-emerald-50/30';
+                const headerBadge = isFinal
+                    ? `<span class="px-2.5 py-1 rounded-lg bg-amber-400 text-pitch-950 font-black text-xs"><i class="fa-solid fa-trophy mr-1"></i>FINAL (JUARA & NAIB JUARA)</span>`
+                    : `<span class="px-2.5 py-1 rounded-lg bg-pitch-800 text-white font-bold text-xs"><i class="fa-solid fa-medal mr-1 text-gold-400"></i>TEMPAT KE-3 & KE-4</span>`;
+
+                return `
+                <div class="rounded-2xl border-2 ${borderClass} p-4 shadow-xs">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        ${headerBadge}
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-semibold text-slate-500">${m.time}</span>
+                            <button onclick="openMatchModal('${m.id}')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-800 hover:text-white text-slate-700 border border-slate-300 text-xs font-bold transition">
+                                <i class="fa-solid fa-file-pen"></i> Laporan
+                            </button>
+                        </div>
+                    </div>
+
+                    ${leagueCompleted < 6 ? `<p class="text-[11px] text-amber-700 bg-amber-100/70 px-2.5 py-1 rounded-lg mb-2.5 font-medium"><i class="fa-solid fa-circle-info mr-1"></i>Kedudukan sementara (${leagueCompleted}/6 perlawanan liga selesai)</p>` : ''}
+
+                    <div class="grid grid-cols-11 items-center gap-2">
+                        <div class="col-span-4 text-right">
+                            <span class="block text-[10px] font-bold uppercase text-slate-400">${isFinal ? 'Juara Liga (1)' : 'Tempat Liga (3)'}</span>
+                            <span class="text-xs sm:text-sm font-black text-slate-900 leading-tight">${tA.name}</span>
+                        </div>
+
+                        <div class="col-span-3 flex items-center justify-center gap-1.5">
+                            <input type="number" min="0" value="${sA}" placeholder="-"
+                                onchange="handleQuickScoreInput('${m.id}', 'A', this.value)"
+                                class="w-11 h-10 text-center text-lg font-black rounded-xl border-2 border-slate-400 bg-white focus:border-amber-500 outline-none">
+                            <span class="font-black text-slate-400">:</span>
+                            <input type="number" min="0" value="${sB}" placeholder="-"
+                                onchange="handleQuickScoreInput('${m.id}', 'B', this.value)"
+                                class="w-11 h-10 text-center text-lg font-black rounded-xl border-2 border-slate-400 bg-white focus:border-amber-500 outline-none">
+                        </div>
+
+                        <div class="col-span-4 text-left">
+                            <span class="block text-[10px] font-bold uppercase text-slate-400">${isFinal ? 'Naib Juara Liga (2)' : 'Tempat Liga (4)'}</span>
+                            <span class="text-xs sm:text-sm font-black text-slate-900 leading-tight">${tB.name}</span>
+                        </div>
+                    </div>
+
+                    ${isDraw ? `
+                        <div class="mt-3 pt-2.5 border-t border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-amber-800"><i class="fa-solid fa-bullseye mr-1"></i>Skor Seri! Skor Penalti:</span>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" min="0" value="${m.penA ?? ''}" placeholder="Pen A"
+                                    onchange="handleQuickPenaltyInput('${m.id}', 'A', this.value)"
+                                    class="w-12 h-7 text-center font-bold rounded-lg border border-amber-400 bg-white">
+                                <span>:</span>
+                                <input type="number" min="0" value="${m.penB ?? ''}" placeholder="Pen B"
+                                    onchange="handleQuickPenaltyInput('${m.id}', 'B', this.value)"
+                                    class="w-12 h-7 text-center font-bold rounded-lg border border-amber-400 bg-white">
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>`;
+            };
+
+            container.innerHTML = renderKnockoutCard(p3, false) + renderKnockoutCard(fin, true);
+
+            // Kemas kini Podium Keputusan Rasmi
+            const finRes = resolveKnockoutWinner(fin);
+            const p3Res = resolveKnockoutWinner(p3);
+
+            document.getElementById('res-1st').textContent = finRes.winner ? getTeamName(finRes.winner) : (finRes.isDrawNeedPen ? 'Seri (Isi skor penalti)' : 'Menunggu Final');
+            document.getElementById('res-2nd').textContent = finRes.loser ? getTeamName(finRes.loser) : 'Menunggu Final';
+            document.getElementById('res-3rd').textContent = p3Res.winner ? getTeamName(p3Res.winner) : (p3Res.isDrawNeedPen ? 'Seri (Isi skor penalti)' : 'Menunggu Penentuan');
+            document.getElementById('res-4th').textContent = p3Res.loser ? getTeamName(p3Res.loser) : 'Menunggu Penentuan';
+        }
+
+        function renderSummaryCards(standings) {
+            const leagueMatches = tournamentState.matches.filter(m => m.stage === 'LEAGUE');
+            const completedCount = leagueMatches.filter(m => m.scoreA !== null && m.scoreB !== null).length;
+            
+            let totalGoals = 0;
+            tournamentState.matches.forEach(m => {
+                if (m.scoreA !== null) totalGoals += parseInt(m.scoreA, 10) || 0;
+                if (m.scoreB !== null) totalGoals += parseInt(m.scoreB, 10) || 0;
+            });
+
+            const fin = tournamentState.matches.find(m => m.id === 'FINAL');
+            const finRes = resolveKnockoutWinner(fin);
+
+            document.getElementById('stat-league-progress').textContent = `${completedCount} / 6 Tamat`;
+            document.getElementById('stat-total-goals').textContent = `${totalGoals} Gol`;
+            document.getElementById('stat-leader').textContent = completedCount > 0 ? standings[0].name : '-';
+            document.getElementById('stat-champion').textContent = finRes.winner ? getTeamName(finRes.winner) : 'Menunggu Final';
+        }
+
+        // =========================================================================
+        // 5. MODAL BORANG LAPORAN INDIVIDU PERLAWANAN (C - G)
+        // =========================================================================
+        let currentModalTeamA = '';
+        let currentModalTeamB = '';
+
+        function openMatchModal(matchId) {
+            const m = tournamentState.matches.find(x => x.id === matchId);
+            if (!m) return;
+
+            currentModalTeamA = m.teamA;
+            currentModalTeamB = m.teamB;
+
+            document.getElementById('modal-match-id').value = m.id;
+            document.getElementById('modal-match-badge').textContent = m.id;
+            document.getElementById('modal-match-title').textContent = `${m.label} • ${getTeamName(m.teamA)} vs ${getTeamName(m.teamB)}`;
+            document.getElementById('modal-time').value = m.time || '';
+            document.getElementById('modal-teamA-name').textContent = getTeamName(m.teamA);
+            document.getElementById('modal-teamB-name').textContent = getTeamName(m.teamB);
+
+            document.getElementById('modal-scoreA').value = m.scoreA !== null ? m.scoreA : '';
+            document.getElementById('modal-scoreB').value = m.scoreB !== null ? m.scoreB : '';
+            document.getElementById('modal-htA').value = m.htA !== null ? m.htA : '';
+            document.getElementById('modal-htB').value = m.htB !== null ? m.htB : '';
+
+            // Kotak Penalti untuk P3 / FINAL
+            const penBox = document.getElementById('modal-penalty-box');
+            if (m.stage !== 'LEAGUE') {
+                penBox.classList.remove('hidden');
+                document.getElementById('pen-label-A').textContent = getTeamObj(m.teamA).short;
+                document.getElementById('pen-label-B').textContent = getTeamObj(m.teamB).short;
+                document.getElementById('modal-penA').value = m.penA !== null ? m.penA : '';
+                document.getElementById('modal-penB').value = m.penB !== null ? m.penB : '';
+                document.getElementById('modal-pen-note').value = m.penNote || '';
+            } else {
+                penBox.classList.add('hidden');
+            }
+
+            document.getElementById('modal-status').value = m.status || 'Belum Mula';
+            document.getElementById('modal-referee').value = m.referee || '';
+            document.getElementById('modal-timekeeper').value = m.timekeeper || '';
+
+            // Render Baris Penjaring Gol
+            const goalsTbody = document.getElementById('modal-goals-tbody');
+            goalsTbody.innerHTML = '';
+            if (m.goals && m.goals.length > 0) {
+                m.goals.forEach(g => addGoalRow(g));
+            } else {
+                addGoalRow();
+            }
+
+            // Render Baris Kad & Disiplin
+            const cardsTbody = document.getElementById('modal-cards-tbody');
+            cardsTbody.innerHTML = '';
+            if (m.cards && m.cards.length > 0) {
+                m.cards.forEach(c => addCardRow(c));
+            } else {
+                addCardRow();
+            }
+
+            document.getElementById('modal-incidents').value = m.incidents || '';
+            document.getElementById('modal-sign-referee').value = m.signReferee || '';
+            document.getElementById('modal-sign-recorder').value = m.signRecorder || '';
+            document.getElementById('modal-sign-committee').value = m.signCommittee || '';
+
+            document.getElementById('match-detail-modal').classList.remove('hidden');
+        }
+
+        function closeMatchModal() {
+            document.getElementById('match-detail-modal').classList.add('hidden');
+        }
+
+        function getTeamOptionsHTML(selectedId) {
+            const tA = getTeamObj(currentModalTeamA);
+            const tB = getTeamObj(currentModalTeamB);
+            return `
+                <option value="${tA.id}" ${selectedId === tA.id ? 'selected' : ''}>${tA.name}</option>
+                <option value="${tB.id}" ${selectedId === tB.id ? 'selected' : ''}>${tB.name}</option>
+            `;
+        }
+
+        function addGoalRow(data = {}) {
+            const tbody = document.getElementById('modal-goals-tbody');
+            const tr = document.createElement('tr');
+            tr.className = 'goal-row';
+            tr.innerHTML = `
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="cth: 12'" value="${data.minute || ''}" class="g-min w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="Nama / No. Pemain" value="${data.player || ''}" class="g-player w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <select class="g-team w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white">
+                        ${getTeamOptionsHTML(data.team || currentModalTeamA)}
+                    </select>
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="Catatan" value="${data.note || ''}" class="g-note w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5 text-center">
+                    <button type="button" onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function addCardRow(data = {}) {
+            const tbody = document.getElementById('modal-cards-tbody');
+            const tr = document.createElement('tr');
+            tr.className = 'card-row';
+            tr.innerHTML = `
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="cth: 24'" value="${data.minute || ''}" class="c-min w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="Nama / No. Pemain" value="${data.player || ''}" class="c-player w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <select class="c-team w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white">
+                        ${getTeamOptionsHTML(data.team || currentModalTeamA)}
+                    </select>
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <select class="c-type w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white font-semibold">
+                        <option value="Kad Kuning" ${data.type === 'Kad Kuning' ? 'selected' : ''}>🟨 Kad Kuning</option>
+                        <option value="Kad Merah" ${data.type === 'Kad Merah' ? 'selected' : ''}>🟥 Kad Merah</option>
+                    </select>
+                </td>
+                <td class="py-1.5 px-1.5">
+                    <input type="text" placeholder="Sebab kesalahan" value="${data.reason || ''}" class="c-reason w-full px-2 py-1.5 rounded-lg border border-slate-300 text-xs">
+                </td>
+                <td class="py-1.5 px-1.5 text-center">
+                    <button type="button" onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function saveMatchModal() {
+            const matchId = document.getElementById('modal-match-id').value;
+            const m = tournamentState.matches.find(x => x.id === matchId);
+            if (!m) return;
+
+            m.time = document.getElementById('modal-time').value.trim();
+
+            const rawSA = document.getElementById('modal-scoreA').value;
+            const rawSB = document.getElementById('modal-scoreB').value;
+            const rawHtA = document.getElementById('modal-htA').value;
+            const rawHtB = document.getElementById('modal-htB').value;
+
+            m.scoreA = rawSA === '' ? null : Math.max(0, parseInt(rawSA, 10));
+            m.scoreB = rawSB === '' ? null : Math.max(0, parseInt(rawSB, 10));
+            m.htA = rawHtA === '' ? null : Math.max(0, parseInt(rawHtA, 10));
+            m.htB = rawHtB === '' ? null : Math.max(0, parseInt(rawHtB, 10));
+
+            if (m.stage !== 'LEAGUE') {
+                const rawPenA = document.getElementById('modal-penA').value;
+                const rawPenB = document.getElementById('modal-penB').value;
+                m.penA = rawPenA === '' ? null : Math.max(0, parseInt(rawPenA, 10));
+                m.penB = rawPenB === '' ? null : Math.max(0, parseInt(rawPenB, 10));
+                m.penNote = document.getElementById('modal-pen-note').value.trim();
+            }
+
+            m.status = document.getElementById('modal-status').value;
+            m.referee = document.getElementById('modal-referee').value.trim();
+            m.timekeeper = document.getElementById('modal-timekeeper').value.trim();
+
+            // Kumpul baris gol yang diisi
+            const goals = [];
+            document.querySelectorAll('#modal-goals-tbody .goal-row').forEach(row => {
+                const minute = row.querySelector('.g-min').value.trim();
+                const player = row.querySelector('.g-player').value.trim();
+                const team = row.querySelector('.g-team').value;
+                const note = row.querySelector('.g-note').value.trim();
+                if (player || minute || note) {
+                    goals.push({ minute, player, team, note });
+                }
+            });
+            m.goals = goals;
+
+            // Kumpul baris kad yang diisi
+            const cards = [];
+            document.querySelectorAll('#modal-cards-tbody .card-row').forEach(row => {
+                const minute = row.querySelector('.c-min').value.trim();
+                const player = row.querySelector('.c-player').value.trim();
+                const team = row.querySelector('.c-team').value;
+                const type = row.querySelector('.c-type').value;
+                const reason = row.querySelector('.c-reason').value.trim();
+                if (player || minute || reason) {
+                    cards.push({ minute, player, team, type, reason });
+                }
+            });
+            m.cards = cards;
+
+            m.incidents = document.getElementById('modal-incidents').value.trim();
+            m.signReferee = document.getElementById('modal-sign-referee').value.trim();
+            m.signRecorder = document.getElementById('modal-sign-recorder').value.trim();
+            m.signCommittee = document.getElementById('modal-sign-committee').value.trim();
+
+            saveState(true);
+            renderAll();
+            closeMatchModal();
+        }
+
+        // =========================================================================
+        // 6. TAB PENJARING TERBANYAK & REKOD DISIPLIN
+        // =========================================================================
+        function renderScorersAndCardsTab() {
+            const scorerMap = {};
+            const allCards = [];
+
+            tournamentState.matches.forEach(m => {
+                if (m.goals) {
+                    m.goals.forEach(g => {
+                        if (g.player && !g.note.toLowerCase().includes('gol sendiri')) {
+                            const key = `${g.player.toLowerCase()}_${g.team}`;
+                            if (!scorerMap[key]) {
+                                scorerMap[key] = {
+                                    player: g.player,
+                                    team: g.team,
+                                    count: 0,
+                                    matches: []
+                                };
+                            }
+                            scorerMap[key].count += 1;
+                            scorerMap[key].matches.push(`${m.id}${g.minute ? " (" + g.minute + "')" : ''}`);
+                        }
+                    });
+                }
+
+                if (m.cards) {
+                    m.cards.forEach(c => {
+                        if (c.player) {
+                            allCards.push({
+                                matchId: m.id,
+                                ...c
+                            });
+                        }
+                    });
+                }
+            });
+
+            const sortedScorers = Object.values(scorerMap).sort((a, b) => b.count - a.count);
+            const scorersContainer = document.getElementById('top-scorers-list');
+
+            if (sortedScorers.length === 0) {
+                scorersContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-futbol text-3xl mb-2 opacity-40"></i>
+                        <p class="text-sm font-semibold">Belum ada rekod penjaring gol dimasukkan.</p>
+                        <p class="text-xs mt-1">Klik butang "Laporan" pada mana-mana kad perlawanan untuk merekod penjaring gol.</p>
+                    </div>`;
+            } else {
+                scorersContainer.innerHTML = `
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                                <th class="py-2.5 px-3 w-12 text-center">#</th>
+                                <th class="py-2.5 px-3">Nama Pemain</th>
+                                <th class="py-2.5 px-3">Pasukan</th>
+                                <th class="py-2.5 px-3 text-center">Gol</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${sortedScorers.map((s, idx) => `
+                                <tr>
+                                    <td class="py-2.5 px-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                                    <td class="py-2.5 px-3 font-extrabold text-slate-900">
+                                        ${s.player}
+                                        <span class="block text-[11px] font-normal text-slate-400">${s.matches.join(', ')}</span>
+                                    </td>
+                                    <td class="py-2.5 px-3 text-xs font-semibold text-slate-700">${getTeamName(s.team)}</td>
+                                    <td class="py-2.5 px-3 text-center">
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-black text-xs">${s.count}</span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
+            }
+
+            const cardsContainer = document.getElementById('all-cards-list');
+            if (allCards.length === 0) {
+                cardsContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-shield-halved text-3xl mb-2 opacity-40"></i>
+                        <p class="text-sm font-semibold">Tiada rekod kad kuning atau merah setakat ini.</p>
+                        <p class="text-xs mt-1">Permainan bersih (Fair Play)!</p>
+                    </div>`;
+            } else {
+                cardsContainer.innerHTML = `
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                                <th class="py-2.5 px-2">Perlawanan</th>
+                                <th class="py-2.5 px-2">Pemain</th>
+                                <th class="py-2.5 px-2">Pasukan</th>
+                                <th class="py-2.5 px-2">Kad & Sebab</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${allCards.map(c => `
+                                <tr>
+                                    <td class="py-2.5 px-2 font-bold text-slate-700">${c.matchId} ${c.minute ? `(${c.minute}')` : ''}</td>
+                                    <td class="py-2.5 px-2 font-bold text-slate-900">${c.player}</td>
+                                    <td class="py-2.5 px-2 text-slate-600">${getTeamName(c.team)}</td>
+                                    <td class="py-2.5 px-2">
+                                        <span class="inline-block px-2 py-0.5 rounded font-bold ${c.type === 'Kad Merah' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${c.type}</span>
+                                        ${c.reason ? `<span class="block text-slate-500 mt-0.5">${c.reason}</span>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
+            }
+        }
+
+        // =========================================================================
+        // 7. NAVIGASI TAB, EKSPORT / IMPORT JSON, RESET & CETAKAN RASMI
+        // =========================================================================
+        function switchTab(tabName) {
+            ['dashboard', 'scorers', 'rules'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.classList.remove('bg-white', 'text-pitch-900', 'shadow-sm');
+                btn.classList.add('bg-emerald-900/60', 'text-emerald-100');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.classList.remove('bg-emerald-900/60', 'text-emerald-100');
+            activeBtn.classList.add('bg-white', 'text-pitch-900', 'shadow-sm');
+        }
+
+        function exportDataJSON() {
+            const dataStr = JSON.stringify(tournamentState, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rekod_Bola_Sepak_4_Penjuru_2026_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Fail sandaran JSON berjaya dimuat turun.', 'success');
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && Array.isArray(imported.matches) && imported.matches.length === 8) {
+                        tournamentState = imported;
+                        saveState(false);
+                        renderAll();
+                        showToast('Data berjaya diimport dan dikemas kini!', 'success');
+                    } else {
+                        showToast('Format fail JSON tidak sah untuk kejohanan ini.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Ralat membaca fail JSON.', 'error');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function requestResetData() {
+            openConfirmModal(
+                'Set Semula Semua Rekod?',
+                'Semua keputusan perlawanan, penjaring gol, kad disiplin, dan nama pengadil akan dipadamkan secara kekal. Pastikan anda telah mengeksport sandaran jika perlu.',
+                () => {
+                    tournamentState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                    saveState(false);
+                    renderAll();
+                    showToast('Semua rekod telah ditetapkan semula.', 'info');
+                }
+            );
+        }
+
+        function openPrintView() {
+            const standings = calculateStandings();
+            const p3 = tournamentState.matches.find(m => m.id === 'P3');
+            const fin = tournamentState.matches.find(m => m.id === 'FINAL');
+            const finRes = resolveKnockoutWinner(fin);
+            const p3Res = resolveKnockoutWinner(p3);
+
+            const printArea = document.getElementById('print-report-area');
+            printArea.innerHTML = `
+                <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 16px;">
+                    <h1 style="font-size: 16pt; font-weight: 900; margin: 0;">DOKUMEN REKOD KEPUTUSAN RASMI KEJOHANAN</h1>
+                    <h2 style="font-size: 13pt; font-weight: 800; margin: 4px 0;">BOLA SEPAK 4 PENJURU: PIALA YDP PIBG SK AGAMA IBNU KHALDUN TAHUN 2026</h2>
+                    <p style="font-size: 10pt; margin: 0;">Tarikh: 22 November 2026 | Tempat: Padang Sintetik UNIMAS | Format: Liga Satu Pusingan</p>
+                </div>
+
+                <h3 style="font-size: 11pt; font-weight: 800; margin: 12px 0 6px;">A. SENARAI PERLAWANAN & KEPUTUSAN</h3>
+                <table style="width:100%; font-size: 9.5pt; margin-bottom: 16px;">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Masa</th>
+                            <th>Pasukan A</th>
+                            <th style="text-align:center;">Skor Akhir (HT)</th>
+                            <th>Pasukan B</th>
+                            <th>Status / Pengadil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tournamentState.matches.map(m => {
+                            const scoreText = (m.scoreA !== null && m.scoreB !== null)
+                                ? `<strong>${m.scoreA} : ${m.scoreB}</strong>`
+                                : '____ : ____';
+                            const htText = (m.htA !== null && m.htB !== null) ? ` (${m.htA}:${m.htB})` : '';
+                            const penText = (m.penA !== null && m.penB !== null) ? ` [Pen: ${m.penA}:${m.penB}]` : '';
+                            return `
+                            <tr>
+                                <td style="text-align:center; font-weight:bold;">${m.id}</td>
+                                <td>${m.time}</td>
+                                <td>${getTeamName(m.teamA)}</td>
+                                <td style="text-align:center;">${scoreText}${htText}${penText}</td>
+                                <td>${getTeamName(m.teamB)}</td>
+                                <td>${m.status}${m.referee ? ' • Pengadil: ' + m.referee : ''}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+
+                <h3 style="font-size: 11pt; font-weight: 800; margin: 12px 0 6px;">B. KEDUDUKAN AKHIR PERINGKAT LIGA</h3>
+                <table style="width:100%; font-size: 9.5pt; margin-bottom: 16px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:center;">Pos</th>
+                            <th>Pasukan</th>
+                            <th style="text-align:center;">P</th>
+                            <th style="text-align:center;">M</th>
+                            <th style="text-align:center;">S</th>
+                            <th style="text-align:center;">K</th>
+                            <th style="text-align:center;">GF</th>
+                            <th style="text-align:center;">GA</th>
+                            <th style="text-align:center;">GD</th>
+                            <th style="text-align:center;">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${standings.map((t, idx) => `
+                            <tr>
+                                <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+                                <td style="font-weight:bold;">${t.name}</td>
+                                <td style="text-align:center;">${t.P}</td>
+                                <td style="text-align:center;">${t.M}</td>
+                                <td style="text-align:center;">${t.S}</td>
+                                <td style="text-align:center;">${t.K}</td>
+                                <td style="text-align:center;">${t.GF}</td>
+                                <td style="text-align:center;">${t.GA}</td>
+                                <td style="text-align:center;">${t.GD > 0 ? '+' + t.GD : t.GD}</td>
+                                <td style="text-align:center; font-weight:bold;">${t.Pts}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3 style="font-size: 11pt; font-weight: 800; margin: 12px 0 6px;">C. KEPUTUSAN RASMI KEJOHANAN</h3>
+                <table style="width:100%; font-size: 10pt; margin-bottom: 24px;">
+                    <tr>
+                        <td style="width:25%; font-weight:bold;">JUARA:</td>
+                        <td style="width:25%;">${finRes.winner ? getTeamName(finRes.winner) : '_______________________'}</td>
+                        <td style="width:25%; font-weight:bold;">TEMPAT KETIGA:</td>
+                        <td style="width:25%;">${p3Res.winner ? getTeamName(p3Res.winner) : '_______________________'}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">NAIB JUARA:</td>
+                        <td>${finRes.loser ? getTeamName(finRes.loser) : '_______________________'}</td>
+                        <td style="font-weight:bold;">TEMPAT KEEMPAT:</td>
+                        <td>${p3Res.loser ? getTeamName(p3Res.loser) : '_______________________'}</td>
+                    </tr>
+                </table>
+
+                <div style="margin-top: 30px; display: flex; justify-content: space-between; font-size: 9.5pt;">
+                    <div style="width: 30%; text-align: center;">
+                        <p style="margin-bottom: 40px;">Disediakan oleh Pencatat:</p>
+                        <p style="border-top: 1px solid #000; padding-top: 4px;">Tandatangan & Nama</p>
+                    </div>
+                    <div style="width: 30%; text-align: center;">
+                        <p style="margin-bottom: 40px;">Disahkan oleh Ketua Pengadil:</p>
+                        <p style="border-top: 1px solid #000; padding-top: 4px;">Tandatangan & Nama</p>
+                    </div>
+                    <div style="width: 30%; text-align: center;">
+                        <p style="margin-bottom: 40px;">Disahkan oleh Urus Setia:</p>
+                        <p style="border-top: 1px solid #000; padding-top: 4px;">Tandatangan & Cop Rasmi</p>
+                    </div>
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // =========================================================================
+        // 8. INISIALISASI HALAMAN
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+    </script>
+</body>
+</html>
